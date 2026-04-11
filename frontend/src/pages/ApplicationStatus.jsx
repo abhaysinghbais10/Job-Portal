@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Navbar from '../components/Navbar';
+import SideNav from '../components/SideNav';
 import Footer from '../components/Footer';
 import LoadingSpinner from '../components/LoadingSpinner';
 import api from '../utils/api';
@@ -84,6 +85,9 @@ function ApplicationStatus() {
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
       <Navbar />
+      <div className="flex flex-1">
+        <SideNav />
+        <main className="flex-1 min-w-0">
 
       {/* Header */}
       <div className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white py-10 px-4">
@@ -254,6 +258,8 @@ function ApplicationStatus() {
         )}
       </div>
 
+        </main>
+      </div>
       <Footer />
     </div>
   );
