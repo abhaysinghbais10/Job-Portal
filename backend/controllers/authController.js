@@ -20,14 +20,17 @@ const register = async (req, res) => {
         .json({ message: 'Please provide name, email and password' });
     }
 
-    const existingUser = await User.findOne({ email });
+    // Ensure email is a plain string (prevents NoSQL injection via objects)
+    const safeEmail = String(email).toLowerCase().trim();
+
+    const existingUser = await User.findOne({ email: safeEmail });
     if (existingUser) {
       return res
         .status(400)
         .json({ message: 'User with this email already exists' });
     }
 
-    const user = await User.create({ name, email, password, phone });
+    const user = await User.create({ name, email: safeEmail, password, phone });
 
     const token = generateToken(user._id);
 
@@ -64,7 +67,10 @@ const login = async (req, res) => {
         .json({ message: 'Please provide email and password' });
     }
 
-    const user = await User.findOne({ email });
+    // Ensure email is a plain string (prevents NoSQL injection via objects)
+    const safeEmail = String(email).toLowerCase().trim();
+
+    const user = await User.findOne({ email: safeEmail });
     if (!user) {
       return res.status(401).json({ message: 'Invalid email or password' });
     }

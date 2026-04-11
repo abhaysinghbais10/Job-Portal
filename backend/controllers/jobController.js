@@ -1,5 +1,10 @@
 const Job = require('../models/Job');
 
+// Escape special regex characters to prevent ReDoS
+function escapeRegex(str) {
+  return String(str).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
 // @desc    Get all jobs (with search/filter)
 // @route   GET /api/jobs
 // @access  Public
@@ -10,24 +15,28 @@ const getJobs = async (req, res) => {
     const query = { isActive: true };
 
     if (search) {
+      const safeSearch = escapeRegex(search);
       query.$or = [
-        { title: { $regex: search, $options: 'i' } },
-        { company: { $regex: search, $options: 'i' } },
-        { techStack: { $in: [new RegExp(search, 'i')] } },
-        { description: { $regex: search, $options: 'i' } },
+        { title: { $regex: safeSearch, $options: 'i' } },
+        { company: { $regex: safeSearch, $options: 'i' } },
+        { techStack: { $in: [new RegExp(safeSearch, 'i')] } },
+        { description: { $regex: safeSearch, $options: 'i' } },
       ];
     }
 
-    if (category && category !== 'All') {
+    // Allow only known enum values for category and type
+    const validCategories = ['Full Stack', 'Frontend', 'Backend', 'Data Science', 'DevOps', 'Design', 'Mobile', 'Other'];
+    if (category && category !== 'All' && validCategories.includes(category)) {
       query.category = category;
     }
 
-    if (type && type !== 'All') {
+    const validTypes = ['Full-time', 'Part-time', 'Contract', 'Internship', 'Remote'];
+    if (type && type !== 'All' && validTypes.includes(type)) {
       query.type = type;
     }
 
     if (location) {
-      query.location = { $regex: location, $options: 'i' };
+      query.location = { $regex: escapeRegex(location), $options: 'i' };
     }
 
     const skip = (Number(page) - 1) * Number(limit);

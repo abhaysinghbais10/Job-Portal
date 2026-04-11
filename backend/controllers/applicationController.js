@@ -1,6 +1,7 @@
 const Application = require('../models/Application');
 const Job = require('../models/Job');
 const path = require('path');
+const mongoose = require('mongoose');
 
 // @desc    Apply for a job
 // @route   POST /api/applications
@@ -15,15 +16,24 @@ const applyForJob = async (req, res) => {
       });
     }
 
+    // Validate jobId is a proper ObjectId to prevent injection
+    if (!mongoose.Types.ObjectId.isValid(String(jobId))) {
+      return res.status(400).json({ message: 'Invalid job ID' });
+    }
+    const safeJobId = new mongoose.Types.ObjectId(String(jobId));
+
+    // Ensure email is a plain string
+    const safeEmail = String(email).toLowerCase().trim();
+
     // Check if job exists
-    const job = await Job.findById(jobId);
+    const job = await Job.findById(safeJobId);
     if (!job || !job.isActive) {
       return res.status(404).json({ message: 'Job not found' });
     }
 
     // Check for duplicate application
     const existing = await Application.findOne({
-      job: jobId,
+      job: safeJobId,
       applicant: req.user._id,
     });
     if (existing) {
@@ -37,10 +47,10 @@ const applyForJob = async (req, res) => {
       : null;
 
     const application = await Application.create({
-      job: jobId,
+      job: safeJobId,
       applicant: req.user._id,
       name,
-      email,
+      email: safeEmail,
       phone,
       coverLetter,
       resume: resumePath,
@@ -110,13 +120,18 @@ const updateApplicationStatus = async (req, res) => {
     const { status } = req.body;
     const validStatuses = ['Applied', 'Under Review', 'Shortlisted', 'Selected', 'Rejected'];
 
-    if (!validStatuses.includes(status)) {
+    // Ensure status is a plain string and matches a valid value
+    if (!validStatuses.includes(String(status))) {
       return res.status(400).json({ message: 'Invalid status' });
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res.status(400).json({ message: 'Invalid application ID' });
     }
 
     const application = await Application.findByIdAndUpdate(
       req.params.id,
-      { status },
+      { status: String(status) },
       { new: true }
     ).populate('job', 'title company');
 
