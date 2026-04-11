@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import Navbar from '../components/Navbar';
+import SideNav from '../components/SideNav';
 import Footer from '../components/Footer';
 import JobCard from '../components/JobCard';
 import LoadingSpinner from '../components/LoadingSpinner';
@@ -90,10 +91,13 @@ function Dashboard() {
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
       <Navbar />
+      <div className="flex flex-1">
+        <SideNav />
+        <main className="flex-1 min-w-0">
 
       {/* Header */}
       <div className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white py-10 px-4">
-        <div className="max-w-7xl mx-auto">
+        <div className="max-w-5xl mx-auto">
           <h1 className="text-3xl font-bold mb-2">
             {user ? `Welcome back, ${user.name.split(' ')[0]}! 👋` : 'Browse All Jobs'}
           </h1>
@@ -128,7 +132,7 @@ function Dashboard() {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-5xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8">
         {/* Filters */}
         <div className={`mb-6 ${showFilters ? 'block' : 'hidden md:block'}`}>
           <div className="bg-white rounded-xl shadow-sm p-4 md:p-5">
@@ -245,6 +249,8 @@ function Dashboard() {
             )}
           </>
         )}
+      </div>
+        </main>
       </div>
       <Footer />
     </div>

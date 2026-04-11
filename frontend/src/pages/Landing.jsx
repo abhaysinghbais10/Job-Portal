@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
@@ -19,6 +19,10 @@ import {
   FiBarChart2,
   FiSmartphone,
   FiCloud,
+  FiFilter,
+  FiX,
+  FiMapPin,
+  FiDollarSign,
 } from 'react-icons/fi';
 
 const categories = [
@@ -29,6 +33,11 @@ const categories = [
   { name: 'DevOps', icon: FiCloud, color: 'from-red-500 to-red-700', bg: 'bg-red-50' },
   { name: 'Mobile', icon: FiSmartphone, color: 'from-pink-500 to-pink-700', bg: 'bg-pink-50' },
 ];
+
+const FILTER_CATEGORIES = ['All', 'Full Stack', 'Frontend', 'Backend', 'Data Science', 'DevOps', 'Design', 'Mobile'];
+const FILTER_TECH = ['All', 'React', 'Node.js', 'Java', 'Spring', 'Python', 'Angular', 'Vue', 'MongoDB', 'AWS'];
+const FILTER_LOCATIONS = ['All', 'Remote', 'Bangalore', 'Mumbai', 'Delhi', 'Hyderabad', 'Pune'];
+const FILTER_SALARY = ['All', '0-5 LPA', '5-10 LPA', '10-20 LPA', '20+ LPA'];
 
 const stats = [
   { label: 'Active Jobs', value: '500+', icon: FiBriefcase },
@@ -41,11 +50,16 @@ function Landing() {
   const [featuredJobs, setFeaturedJobs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const [showFilters, setShowFilters] = useState(false);
+  const [filterCategory, setFilterCategory] = useState('All');
+  const [filterTech, setFilterTech] = useState('All');
+  const [filterLocation, setFilterLocation] = useState('All');
+  const [filterSalary, setFilterSalary] = useState('All');
 
   useEffect(() => {
     const fetchFeaturedJobs = async () => {
       try {
-        const res = await api.get('/jobs?limit=6');
+        const res = await api.get('/jobs?limit=12');
         setFeaturedJobs(res.data.jobs);
       } catch {
         // Silently fail for landing page
@@ -58,8 +72,33 @@ function Landing() {
 
   const handleSearch = (e) => {
     e.preventDefault();
-    window.location.href = `/dashboard?search=${encodeURIComponent(searchQuery)}`;
+    window.location.href = `/find-jobs?search=${encodeURIComponent(searchQuery)}`;
   };
+
+  const hasFilters = filterCategory !== 'All' || filterTech !== 'All' || filterLocation !== 'All' || filterSalary !== 'All';
+
+  const clearFilters = () => {
+    setFilterCategory('All');
+    setFilterTech('All');
+    setFilterLocation('All');
+    setFilterSalary('All');
+  };
+
+  const filteredJobs = useMemo(() => {
+    return featuredJobs.filter((job) => {
+      if (filterCategory !== 'All' && job.category !== filterCategory) return false;
+      if (filterTech !== 'All' && !job.techStack?.some((t) => t.toLowerCase().includes(filterTech.toLowerCase()))) return false;
+      if (filterLocation !== 'All') {
+        const loc = job.location?.toLowerCase() || '';
+        if (filterLocation === 'Remote') {
+          if (!loc.includes('remote')) return false;
+        } else {
+          if (!loc.toLowerCase().includes(filterLocation.toLowerCase())) return false;
+        }
+      }
+      return true;
+    });
+  }, [featuredJobs, filterCategory, filterTech, filterLocation, filterSalary]);
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -162,33 +201,158 @@ function Landing() {
       {/* Featured Jobs */}
       <section className="py-16 px-4 bg-white">
         <div className="max-w-7xl mx-auto">
-          <div className="flex items-center justify-between mb-10">
+          <div className="flex items-center justify-between mb-6">
             <div>
               <h2 className="section-title mb-1">Featured Jobs</h2>
               <p className="text-gray-500">Latest opportunities from top companies</p>
             </div>
-            <Link
-              to="/dashboard"
-              className="btn-secondary text-sm py-2 px-4 hidden sm:flex"
-            >
-              View All <FiArrowRight size={16} />
-            </Link>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => setShowFilters(!showFilters)}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium border transition-colors ${
+                  showFilters || hasFilters
+                    ? 'bg-blue-600 text-white border-blue-600'
+                    : 'bg-white text-gray-600 border-gray-200 hover:border-blue-300 hover:text-blue-600'
+                }`}
+              >
+                <FiFilter size={15} />
+                Filter
+                {hasFilters && (
+                  <span className="bg-white text-blue-600 text-xs w-5 h-5 rounded-full flex items-center justify-center font-bold">
+                    ✓
+                  </span>
+                )}
+              </button>
+              <Link
+                to="/find-jobs"
+                className="btn-secondary text-sm py-2 px-4 hidden sm:flex"
+              >
+                View All <FiArrowRight size={16} />
+              </Link>
+            </div>
           </div>
+
+          {/* Filter Panel */}
+          {showFilters && (
+            <div className="mb-8 bg-gray-50 border border-gray-200 rounded-xl p-5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                {/* Category filter */}
+                <div>
+                  <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-1.5">
+                    <FiBriefcase size={11} /> Category
+                  </label>
+                  <div className="flex flex-wrap gap-1.5">
+                    {FILTER_CATEGORIES.map((cat) => (
+                      <button
+                        key={cat}
+                        onClick={() => setFilterCategory(cat)}
+                        className={`px-2.5 py-1 rounded-md text-xs font-medium transition-colors ${
+                          filterCategory === cat
+                            ? 'bg-blue-600 text-white'
+                            : 'bg-white border border-gray-200 text-gray-600 hover:border-blue-300 hover:text-blue-600'
+                        }`}
+                      >
+                        {cat}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Tech Stack filter */}
+                <div>
+                  <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-1.5">
+                    <FiCode size={11} /> Tech Stack
+                  </label>
+                  <div className="flex flex-wrap gap-1.5">
+                    {FILTER_TECH.map((tech) => (
+                      <button
+                        key={tech}
+                        onClick={() => setFilterTech(tech)}
+                        className={`px-2.5 py-1 rounded-md text-xs font-medium transition-colors ${
+                          filterTech === tech
+                            ? 'bg-blue-600 text-white'
+                            : 'bg-white border border-gray-200 text-gray-600 hover:border-blue-300 hover:text-blue-600'
+                        }`}
+                      >
+                        {tech}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Location filter */}
+                <div>
+                  <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-1.5">
+                    <FiMapPin size={11} /> Location
+                  </label>
+                  <select
+                    value={filterLocation}
+                    onChange={(e) => setFilterLocation(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    {FILTER_LOCATIONS.map((l) => <option key={l}>{l}</option>)}
+                  </select>
+                </div>
+
+                {/* Salary filter */}
+                <div>
+                  <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-1.5">
+                    <FiDollarSign size={11} /> Salary Range
+                  </label>
+                  <select
+                    value={filterSalary}
+                    onChange={(e) => setFilterSalary(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    {FILTER_SALARY.map((s) => <option key={s}>{s}</option>)}
+                  </select>
+                </div>
+              </div>
+
+              {/* Results count + clear */}
+              <div className="mt-4 flex items-center justify-between pt-4 border-t border-gray-200">
+                <p className="text-sm text-gray-600">
+                  Showing <span className="font-semibold text-blue-600">{filteredJobs.length}</span> of {featuredJobs.length} featured jobs
+                </p>
+                {hasFilters && (
+                  <button
+                    onClick={clearFilters}
+                    className="flex items-center gap-1.5 text-sm text-red-500 hover:text-red-600 font-medium"
+                  >
+                    <FiX size={14} /> Reset filters
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
 
           {loading ? (
             <div className="py-16 flex justify-center">
               <LoadingSpinner size="lg" />
             </div>
+          ) : filteredJobs.length === 0 ? (
+            <div className="text-center py-16">
+              <div className="inline-flex items-center justify-center w-16 h-16 bg-gray-100 rounded-full mb-4">
+                <FiBriefcase size={28} className="text-gray-400" />
+              </div>
+              <p className="text-gray-500 mb-4">No jobs match the selected filters.</p>
+              <button
+                onClick={clearFilters}
+                className="btn-primary text-sm py-2 px-5"
+              >
+                Reset Filters
+              </button>
+            </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {featuredJobs.map((job) => (
+              {filteredJobs.slice(0, 6).map((job) => (
                 <JobCard key={job._id} job={job} />
               ))}
             </div>
           )}
 
           <div className="text-center mt-10">
-            <Link to="/dashboard" className="btn-primary">
+            <Link to="/find-jobs" className="btn-primary">
               Explore All Jobs <FiArrowRight size={18} />
             </Link>
           </div>
@@ -246,7 +410,7 @@ function Landing() {
             <Link to="/register" className="bg-white text-blue-600 font-bold px-8 py-3.5 rounded-xl hover:bg-gray-100 transition-colors">
               Create Free Account
             </Link>
-            <Link to="/dashboard" className="border-2 border-white text-white font-bold px-8 py-3.5 rounded-xl hover:bg-white hover:text-blue-600 transition-colors">
+            <Link to="/find-jobs" className="border-2 border-white text-white font-bold px-8 py-3.5 rounded-xl hover:bg-white hover:text-blue-600 transition-colors">
               Browse Jobs
             </Link>
           </div>
