@@ -1,4 +1,5 @@
 const Job = require('../models/Job');
+const mongoose = require('mongoose');
 
 // Escape special regex characters to prevent ReDoS
 function escapeRegex(str) {
@@ -12,45 +13,55 @@ const getJobs = async (req, res) => {
   try {
     const { search, category, type, location, page = 1, limit = 10 } = req.query;
 
-    const query = { isActive: true };
+    // Validate and sanitize pagination inputs
+    const safePage = Math.max(1, parseInt(page, 10) || 1);
+    const safeLimit = Math.min(50, Math.max(1, parseInt(limit, 10) || 10));
+    const skip = (safePage - 1) * safeLimit;
+
+    // Build filter array from validated/sanitized values only
+    const filters = [{ isActive: true }];
 
     if (search) {
-      const safeSearch = escapeRegex(search);
-      query.$or = [
-        { title: { $regex: safeSearch, $options: 'i' } },
-        { company: { $regex: safeSearch, $options: 'i' } },
-        { techStack: { $in: [new RegExp(safeSearch, 'i')] } },
-        { description: { $regex: safeSearch, $options: 'i' } },
-      ];
+      const safeSearch = escapeRegex(search).slice(0, 200);
+      filters.push({
+        $or: [
+          { title: { $regex: safeSearch, $options: 'i' } },
+          { company: { $regex: safeSearch, $options: 'i' } },
+          { techStack: { $in: [new RegExp(safeSearch, 'i')] } },
+        ],
+      });
     }
 
     // Allow only known enum values for category and type
     const validCategories = ['Full Stack', 'Frontend', 'Backend', 'Data Science', 'DevOps', 'Design', 'Mobile', 'Other'];
-    if (category && category !== 'All' && validCategories.includes(category)) {
-      query.category = category;
+    if (category && validCategories.includes(String(category))) {
+      filters.push({ category: String(category) });
     }
 
     const validTypes = ['Full-time', 'Part-time', 'Contract', 'Internship', 'Remote'];
-    if (type && type !== 'All' && validTypes.includes(type)) {
-      query.type = type;
+    if (type && validTypes.includes(String(type))) {
+      filters.push({ type: String(type) });
     }
 
     if (location) {
-      query.location = { $regex: escapeRegex(location), $options: 'i' };
+      filters.push({ location: { $regex: escapeRegex(location).slice(0, 100), $options: 'i' } });
     }
 
-    const skip = (Number(page) - 1) * Number(limit);
-    const total = await Job.countDocuments(query);
-    const jobs = await Job.find(query)
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(Number(limit));
+    const finalQuery = { $and: filters };
+
+    const [total, jobs] = await Promise.all([
+      Job.countDocuments(finalQuery),
+      Job.find(finalQuery)
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(safeLimit),
+    ]);
 
     res.json({
       jobs,
       total,
-      page: Number(page),
-      pages: Math.ceil(total / Number(limit)),
+      page: safePage,
+      pages: Math.ceil(total / safeLimit),
     });
   } catch (error) {
     console.error('GetJobs error:', error);
@@ -63,6 +74,9 @@ const getJobs = async (req, res) => {
 // @access  Public
 const getJobById = async (req, res) => {
   try {
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res.status(404).json({ message: 'Job not found' });
+    }
     const job = await Job.findById(req.params.id);
     if (!job || !job.isActive) {
       return res.status(404).json({ message: 'Job not found' });
@@ -70,9 +84,6 @@ const getJobById = async (req, res) => {
     res.json({ job });
   } catch (error) {
     console.error('GetJobById error:', error);
-    if (error.kind === 'ObjectId') {
-      return res.status(404).json({ message: 'Job not found' });
-    }
     res.status(500).json({ message: 'Server error' });
   }
 };
@@ -125,7 +136,39 @@ const createJob = async (req, res) => {
 // @access  Private (admin)
 const updateJob = async (req, res) => {
   try {
-    const job = await Job.findByIdAndUpdate(req.params.id, req.body, {
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res.status(404).json({ message: 'Job not found' });
+    }
+
+    // Whitelist only allowed fields to prevent mass assignment
+    const {
+      title,
+      company,
+      location,
+      type,
+      category,
+      techStack,
+      experience,
+      salary,
+      description,
+      requirements,
+      isActive,
+    } = req.body;
+
+    const updateData = {};
+    if (title !== undefined) updateData.title = title;
+    if (company !== undefined) updateData.company = company;
+    if (location !== undefined) updateData.location = location;
+    if (type !== undefined) updateData.type = type;
+    if (category !== undefined) updateData.category = category;
+    if (techStack !== undefined) updateData.techStack = techStack;
+    if (experience !== undefined) updateData.experience = experience;
+    if (salary !== undefined) updateData.salary = salary;
+    if (description !== undefined) updateData.description = description;
+    if (requirements !== undefined) updateData.requirements = requirements;
+    if (isActive !== undefined) updateData.isActive = isActive;
+
+    const job = await Job.findByIdAndUpdate(req.params.id, updateData, {
       new: true,
       runValidators: true,
     });
