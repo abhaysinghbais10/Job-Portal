@@ -7,247 +7,127 @@ A professional, full-stack Job Portal built with the **MERN stack** (MongoDB, Ex
 ## ✨ Features
 
 - 🔐 **Authentication** – JWT-based register/login with bcrypt password hashing
+
 - 🏠 **Landing Page** – Hero section, job categories, featured listings, stats
+
 - 📋 **Job Dashboard** – Search, filter by category/type, paginated listings
+
 - 📄 **Job Details** – Full job info, requirements, tech stack
+
 - 💼 **Job Application** – Form with resume upload (PDF/DOC/DOCX), cover letter
+
 - 📊 **Application Status** – Track application progress with visual steps
+
 - 🔒 **Protected Routes** – Dashboard & application pages require login
+
 - 📱 **Fully Responsive** – Works on mobile, tablet, and desktop
+
 - 🍞 **Toast Notifications** – Instant feedback for all actions
+
 - 🌱 **Auto-seeded Jobs** – Sample job data added on first run
 
 ---
 
 ## 🗂️ Project Structure
 
-```
+
 Job-Portal/
-├── backend/                  # Node.js + Express API
-│   ├── controllers/
-│   │   ├── authController.js
-│   │   ├── jobController.js
-│   │   └── applicationController.js
-│   ├── middleware/
-│   │   └── auth.js           # JWT auth middleware
-│   ├── models/
-│   │   ├── User.js
-│   │   ├── Job.js
-│   │   └── Application.js
-│   ├── routes/
-│   │   ├── auth.js
-│   │   ├── jobs.js
-│   │   └── applications.js
-│   ├── .env.example
-│   ├── .gitignore
-│   ├── package.json
-│   └── server.js
+
+├── backend/ # Node.js + Express API
+│ ├── controllers/
+│ │ ├── authController.js
+│ │ ├── jobController.js
+│ │ └── applicationController.js
+│ ├── middleware/
+│ │ └── auth.js
+│ ├── models/
+│ │ ├── User.js
+│ │ ├── Job.js
+│ │ └── Application.js
+│ ├── routes/
+│ │ ├── auth.js
+│ │ ├── jobs.js
+│ │ └── applications.js
+│ ├── .env.example
+│ ├── package.json
+│ └── server.js
 │
-├── frontend/                 # React.js + Tailwind CSS
-│   ├── src/
-│   │   ├── components/
-│   │   │   ├── Footer.jsx
-│   │   │   ├── JobCard.jsx
-│   │   │   ├── LoadingSpinner.jsx
-│   │   │   ├── Navbar.jsx
-│   │   │   └── ProtectedRoute.jsx
-│   │   ├── context/
-│   │   │   └── AuthContext.jsx
-│   │   ├── pages/
-│   │   │   ├── Landing.jsx
-│   │   │   ├── Login.jsx
-│   │   │   ├── Register.jsx
-│   │   │   ├── Dashboard.jsx
-│   │   │   ├── JobDetails.jsx
-│   │   │   ├── ApplyJob.jsx
-│   │   │   └── ApplicationStatus.jsx
-│   │   ├── utils/
-│   │   │   └── api.js        # Axios instance
-│   │   ├── App.jsx
-│   │   ├── main.jsx
-│   │   └── index.css
-│   ├── .gitignore
-│   ├── index.html
-│   ├── package.json
-│   ├── tailwind.config.js
-│   ├── postcss.config.js
-│   └── vite.config.js
+├── frontend/ # React.js + Tailwind CSS
+│ ├── src/
+│ │ ├── components/
+│ │ ├── context/
+│ │ ├── pages/
+│ │ ├── utils/
+│ │ ├── App.jsx
+│ │ ├── main.jsx
+│ │ └── index.css
+│ ├── package.json
+│ ├── tailwind.config.js
+│ ├── postcss.config.js
+│ └── vite.config.js
 │
+├── package.json
+├── package-lock.json
 ├── .gitignore
 └── README.md
-```
+
 
 ---
 
-## ⚡ Quick Start (one command)
+# ⚡ Quick Start
 
 ```bash
 git clone https://github.com/abhaysinghbais10/Job-Portal.git
+
 cd Job-Portal
-npm install      # installs root, backend and frontend deps and creates backend/.env
-npm run dev      # starts API (http://localhost:5000) and web app (http://localhost:5173)
-```
 
-Open **http://localhost:5173**.
+npm install
 
-**Database:** if MongoDB is running locally (or `MONGO_URI` in `backend/.env` points to Atlas) it is used.
-Otherwise, in development the backend automatically starts an embedded MongoDB
-(first run downloads a binary, so it needs internet; data is kept in `backend/.mongo-data`).
-Sample jobs are seeded automatically.
+npm run dev
 
----
+Application runs on:
 
-## ⚙️ Setup & Installation
+Frontend:
 
-### Prerequisites
-- [Node.js](https://nodejs.org/) v18+
-- [MongoDB](https://www.mongodb.com/) (local or [Atlas](https://www.mongodb.com/cloud/atlas))
-- npm or yarn
+http://localhost:5173
 
----
+Backend:
 
-### 1️⃣ Clone the Repository
-
-```bash
+http://localhost:5000
+⚙️ Setup & Installation
+Prerequisites
+Node.js v18+
+MongoDB (Local or MongoDB Atlas)
+npm or yarn
+1️⃣ Clone Repository
 git clone https://github.com/abhaysinghbais10/Job-Portal.git
+
 cd Job-Portal
-```
-
----
-
-### 2️⃣ Backend Setup
-
-```bash
+2️⃣ Backend Setup
 cd backend
 
-# Install dependencies
 npm install
 
-# Create .env file from example
-cp .env.example .env
-```
+Create .env file:
 
-Edit `backend/.env`:
-
-```env
 PORT=5000
+
 MONGO_URI=mongodb://localhost:27017/jobportal
-JWT_SECRET=your_super_secret_jwt_key_change_this_in_production
+
+JWT_SECRET=your_secret_key
+
 CLIENT_URL=http://localhost:5173
-```
 
-Start the backend:
+Start backend:
 
-```bash
-# Development (with auto-reload)
 npm run dev
-
-# Production
-npm start
-```
-
-The backend will start on **http://localhost:5000**. Sample jobs are auto-seeded on first run.
-
----
-
-### 3️⃣ Frontend Setup
-
-```bash
+3️⃣ Frontend Setup
 cd frontend
 
-# Install dependencies
 npm install
 
-# Start dev server
 npm run dev
-```
 
-The frontend will be available at **http://localhost:5173**.
-
----
-
-## 📡 API Endpoints
-
-### Auth
-| Method | Endpoint | Description | Access |
-|--------|----------|-------------|--------|
-| POST | `/api/auth/register` | Register new user | Public |
-| POST | `/api/auth/login` | Login user | Public |
-| GET | `/api/auth/me` | Get current user | Private |
-
-### Jobs
-| Method | Endpoint | Description | Access |
-|--------|----------|-------------|--------|
-| GET | `/api/jobs` | Get all jobs (with search/filter) | Public |
-| GET | `/api/jobs/:id` | Get single job | Public |
-| POST | `/api/jobs` | Create a job | Admin |
-| PUT | `/api/jobs/:id` | Update a job | Admin |
-| DELETE | `/api/jobs/:id` | Delete a job | Admin |
-
-**Query params for GET /api/jobs:** `search`, `category`, `type`, `location`, `page`, `limit`
-
-### Applications
-| Method | Endpoint | Description | Access |
-|--------|----------|-------------|--------|
-| POST | `/api/applications` | Apply for a job | Private |
-| GET | `/api/applications/my` | Get my applications | Private |
-| GET | `/api/applications` | Get all applications | Admin |
-| PUT | `/api/applications/:id/status` | Update status | Admin |
-
----
-
-## 🛠️ Tech Stack
-
-| Layer | Technology |
-|-------|-----------|
-| Frontend | React 18, Vite, Tailwind CSS |
-| Routing | React Router v6 |
-| HTTP Client | Axios |
-| Notifications | React Hot Toast |
-| Icons | React Icons |
-| Backend | Node.js, Express.js |
-| Database | MongoDB, Mongoose |
-| Auth | JWT, bcryptjs |
-| File Upload | Multer |
-
----
-
-## 🔐 Security Features
-
-- Passwords hashed with **bcryptjs** (12 salt rounds)
-- JWT tokens with 7-day expiration
-- Protected API routes via auth middleware
-- File upload validation (type & size limits)
-- Duplicate application prevention
-
----
-
-## 📸 Pages
-
-| Page | Description |
-|------|-------------|
-| Landing | Hero, categories, featured jobs |
-| Dashboard | Job listings with search & filters |
-| Job Details | Full job info + apply button |
-| Apply | Application form with resume upload |
-| My Applications | Status tracking with progress steps |
-
----
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
-
----
-
-## 📄 License
-
-This project is licensed under the Abhay Singh Bais.
-
----
+This project is developed by Abhay Singh Bais.
 
 Built with ❤️ using the MERN Stack
